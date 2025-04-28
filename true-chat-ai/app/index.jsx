@@ -8,10 +8,13 @@ import {
 } from "react-native-responsive-screen";
 
 import ChatFaceData from "../constant/ChatFaceData";
+import { useRouter } from "expo-router";
 
 const homeScreen = () => {
+  const router = useRouter();
   const [chatData, setChatData] = useState([]);
   const [selectedChat, setSelectedChat] = useState({});
+
   useEffect(() => {
     setChatData(ChatFaceData);
     setSelectedChat(ChatFaceData[0]);
@@ -19,7 +22,9 @@ const homeScreen = () => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white" }} edges={["top"]}>
-      <View style={{ alignItems: "center", paddingTop: 90 }}>
+      <View
+        style={{ alignItems: "center", paddingTop: 90, paddingHorizontal: 20 }}
+      >
         <Text
           style={{
             color: selectedChat?.primary,
@@ -31,7 +36,7 @@ const homeScreen = () => {
         </Text>
         <Text
           style={{
-            fontSize: hp(1.7),
+            fontSize: hp(2),
           }}
         >
           I'm {selectedChat?.name}
@@ -42,11 +47,14 @@ const homeScreen = () => {
         />
         <Text
           style={{
-            marginTop: 30,
-            fontSize: hp(3),
+            marginTop: 15,
+            fontSize: hp(2),
+            textAlign: "center",
+            // color: "#B0B0B0",
+            opacity: 0.5,
           }}
         >
-          How can I help you
+          {selectedChat?.specialization?.split(":")[1]?.trim()}
         </Text>
         <View
           style={{
@@ -62,7 +70,7 @@ const homeScreen = () => {
           <FlatList
             horizontal={true}
             showsHorizontalScrollIndicator={false}
-            data={ChatFaceData}
+            data={chatData}
             renderItem={({ item, index }) =>
               selectedChat?.id !== item?.id && (
                 <TouchableOpacity
@@ -90,6 +98,14 @@ const homeScreen = () => {
             marginTop: 30,
             backgroundColor: selectedChat.primary,
           }}
+          onPress={() =>
+            router.push({
+              pathname: "chatScreen",
+              params: {
+                selected: JSON.stringify(selectedChat),
+              },
+            })
+          }
         >
           <Text style={{ fontSize: hp(2), color: "#fff" }}>Let's Chat</Text>
         </TouchableOpacity>

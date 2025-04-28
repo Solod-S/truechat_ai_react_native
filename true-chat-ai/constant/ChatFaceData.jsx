@@ -1,37 +1,47 @@
 const ChatFaceData = [
   {
     id: 1,
-    name: "Noyi",
+    name: "FinBot",
     image: require("./../assets/images/bot_1.png"),
-    primary: "#FFC107",
+    primary: "#284459",
+    specialization:
+      "Financial Advisor: Chat will answer questions related to investments, finances, budgeting and taxes.",
     secondary: "",
   },
   {
     id: 2,
-    name: "Pogu",
+    name: "MedBot",
     image: require("./../assets/images/bot_2.png"),
-    primary: "#E53057",
+    primary: "#12a7ca",
+    specialization:
+      "Medical Advisor: Chat will provide advice and information on health, diseases, medications, treatments and prevention.",
     secondary: "",
   },
   {
     id: 3,
-    name: "Nista",
+    name: "TechBot",
     image: require("./../assets/images/bot_3.png"),
-    primary: "#3B96D2",
+    primary: "#0f1f56",
+    specialization:
+      "Technical Support: Chat will help the user with questions on working with software, setting up devices and solving technical problems.",
     secondary: "",
   },
   {
     id: 4,
-    name: "Estor",
+    name: "LegalBot",
     image: require("./../assets/images/bot_4.png"),
-    primary: "#37474F",
+    primary: "#183856",
+    specialization:
+      "Legal Advisor: Chat will answer questions related to rights, laws, contracts, family law and legal advice.",
     secondary: "",
   },
   {
     id: 5,
-    name: "Pega",
+    name: "CookBot",
     image: require("./../assets/images/bot_5.png"),
-    primary: "#2473FE",
+    primary: "#fe4d6d",
+    specialization:
+      "Culinary Guide: Chat will give advice on cooking, recipes, diets and culinary issues.",
     secondary: "",
   },
 ];
