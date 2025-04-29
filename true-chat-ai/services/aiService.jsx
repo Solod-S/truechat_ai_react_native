@@ -70,7 +70,7 @@ export async function getGoogleAIResponse(text, firsRender, specialization) {
     return {
       success: true,
       content:
-        "Request limit reached. The bot is currently overloaded. Please try again later.",
+        "🤖 The bot is currently overloaded ⚡️. Please try again later 🙏.",
     };
   }
 }

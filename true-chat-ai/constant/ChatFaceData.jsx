@@ -14,7 +14,7 @@ const ChatFaceData = [
     image: require("./../assets/images/bot_2.png"),
     primary: "#12a7ca",
     specialization:
-      "Medical Advisor: Chat will provide advice and information on health, diseases, medications, treatments and prevention.",
+      "Medical Advisor: Chat will provide advice and information on health, diseases and treatments.",
     secondary: "",
   },
   {
@@ -23,7 +23,7 @@ const ChatFaceData = [
     image: require("./../assets/images/bot_3.png"),
     primary: "#0f1f56",
     specialization:
-      "Technical Support: Chat will help the user with questions on working with software, setting up devices and solving technical problems.",
+      "Technical Support: Chat will help with questions on working with software and solving technical problems.",
     secondary: "",
   },
   {

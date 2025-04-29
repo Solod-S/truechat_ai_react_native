@@ -1,6 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Animated,
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import {
   View,
   Text,
   TextInput,
@@ -11,21 +19,26 @@ import {
   Image,
 } from "react-native";
 import { getGoogleAIResponse } from "../services";
-import { useLocalSearchParams, useNavigation } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { CustomKeyboardView } from "../components";
+// import { UsePreventBack } from "../hooks";
 
 const ChatScreen = () => {
-  const navigation = useNavigation();
+  // UsePreventBack();
+  const router = useRouter();
   const { selected } = useLocalSearchParams();
-
   const chatData = JSON.parse(selected);
+
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
   const [firsRender, setFirsRender] = useState(true);
+
+  const fadeAnim = useRef(new Animated.Value(0)).current; // добавили анимацию прозрачности
 
   useEffect(() => {
     if (chatData) {
@@ -42,15 +55,12 @@ const ChatScreen = () => {
   }, []);
 
   useEffect(() => {
-    navigation.setOptions({
-      headerShown: true,
-      headerTransparent: false,
-      headerTitle: "Chat",
-      headerBackTitleVisible: true,
-      headerBackTitle: "Back",
-      headerTintColor: "black",
-    });
-  }, []);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 400,
+      useNativeDriver: true,
+    }).start();
+  }, [messages]);
 
   const sendMessage = async () => {
     if (!inputText.trim()) return;
@@ -95,10 +105,11 @@ const ChatScreen = () => {
   };
 
   const renderItem = ({ item }) => (
-    <View
+    <Animated.View
       style={[
         styles.messageContainer,
         item.sender === "user" ? styles.userMessage : styles.botMessage,
+        { opacity: fadeAnim },
       ]}
     >
       {item.sender === "bot" && (
@@ -111,11 +122,34 @@ const ChatScreen = () => {
           {item.createdAt.toLocaleTimeString()}
         </Text>
       </View>
-    </View>
+    </Animated.View>
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <StatusBar style="dark" />
+      {/* <CustomKeyboardView> </CustomKeyboardView> */}
+      <View
+        style={{
+          flexDirection: "row",
+          padding: 10,
+          borderBottomWidth: 1,
+          borderColor: "#ccc",
+        }}
+      >
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text
+            style={{
+              color: "black",
+              fontSize: hp(2),
+              fontWeight: "bold",
+            }}
+          >
+            Back
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <FlatList
         data={messages}
         renderItem={renderItem}
@@ -124,25 +158,29 @@ const ChatScreen = () => {
         contentContainerStyle={styles.chat}
       />
 
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Type a message..."
-          value={inputText}
-          onChangeText={setInputText}
-          onSubmitEditing={sendMessage}
-          editable={!loading}
-        />
-        <TouchableOpacity
-          style={styles.sendButton}
-          onPress={sendMessage}
-          disabled={loading}
-        >
-          <Text style={styles.sendButtonText}>
-            {loading ? <ActivityIndicator size={"small"} /> : "Send"}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Type a message..."
+            value={inputText}
+            onChangeText={setInputText}
+            onSubmitEditing={sendMessage}
+            editable={!loading}
+          />
+          <TouchableOpacity
+            style={styles.sendButton}
+            onPress={sendMessage}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator size={"small"} color="#007AFF" />
+            ) : (
+              <Text style={styles.sendButtonText}>Send</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 };
