@@ -6,9 +6,6 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Animated,
-} from "react-native";
-import { StatusBar } from "expo-status-bar";
-import {
   View,
   Text,
   TextInput,
@@ -17,18 +14,20 @@ import {
   StyleSheet,
   ActivityIndicator,
   Image,
+  Alert,
+  Vibration,
 } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { getGoogleAIResponse } from "../services";
-import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import { CustomKeyboardView } from "../components";
-// import { UsePreventBack } from "../hooks";
+import { UsePreventBack } from "../hooks/usePreventBack";
 
 const ChatScreen = () => {
-  // UsePreventBack();
+  UsePreventBack();
   const router = useRouter();
   const { selected } = useLocalSearchParams();
   const chatData = JSON.parse(selected);
@@ -37,8 +36,22 @@ const ChatScreen = () => {
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
   const [firsRender, setFirsRender] = useState(true);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const fadeAnim = useRef(new Animated.Value(0)).current; // добавили анимацию прозрачности
+  const handleGoBack = () => {
+    Vibration.vibrate(200);
+    Alert.alert(
+      "Go Back?",
+      "Are you sure you want to close this chat? The chat history will be permanently deleted.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Go Back",
+          onPress: () => router.back(),
+        },
+      ]
+    );
+  };
 
   useEffect(() => {
     if (chatData) {
@@ -64,7 +77,7 @@ const ChatScreen = () => {
 
   const sendMessage = async () => {
     if (!inputText.trim()) return;
-
+    let msg = inputText;
     const newMessage = {
       id: Date.now(),
       text: inputText,
@@ -72,13 +85,12 @@ const ChatScreen = () => {
       createdAt: new Date(),
     };
 
-    setMessages(prevMessages => [newMessage, ...prevMessages]);
-
+    setMessages(prev => [newMessage, ...prev]);
     setLoading(true);
-
+    setInputText("");
     try {
       const resp = await getGoogleAIResponse(
-        inputText,
+        msg,
         firsRender,
         chatData?.specialization
       );
@@ -88,7 +100,7 @@ const ChatScreen = () => {
         sender: "bot",
         createdAt: new Date(),
       };
-      setMessages(prevMessages => [botReply, ...prevMessages]);
+      setMessages(prev => [botReply, ...prev]);
     } catch (error) {
       const errorReply = {
         id: Date.now() + 1,
@@ -96,9 +108,8 @@ const ChatScreen = () => {
         sender: "bot",
         createdAt: new Date(),
       };
-      setMessages(prevMessages => [errorReply, ...prevMessages]);
+      setMessages(prev => [errorReply, ...prev]);
     } finally {
-      setInputText("");
       setLoading(false);
       setFirsRender(false);
     }
@@ -126,62 +137,61 @@ const ChatScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-      <StatusBar style="dark" />
-      {/* <CustomKeyboardView> </CustomKeyboardView> */}
-      <View
-        style={{
-          flexDirection: "row",
-          padding: 10,
-          borderBottomWidth: 1,
-          borderColor: "#ccc",
-        }}
-      >
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text
-            style={{
-              color: "black",
-              fontSize: hp(2),
-              fontWeight: "bold",
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <StatusBar style="dark" />
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => {
+              if (messages?.length > 1) {
+                handleGoBack();
+              } else {
+                router.back();
+              }
             }}
           >
-            Back
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <FlatList
-        data={messages}
-        renderItem={renderItem}
-        keyExtractor={item => item.id.toString()}
-        inverted
-        contentContainerStyle={styles.chat}
-      />
-
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Type a message..."
-            value={inputText}
-            onChangeText={setInputText}
-            onSubmitEditing={sendMessage}
-            editable={!loading}
-          />
-          <TouchableOpacity
-            style={styles.sendButton}
-            onPress={sendMessage}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator size={"small"} color="#007AFF" />
-            ) : (
-              <Text style={styles.sendButtonText}>Send</Text>
-            )}
+            <Text style={styles.backButton}>Back</Text>
           </TouchableOpacity>
         </View>
-      </TouchableWithoutFeedback>
-    </SafeAreaView>
+
+        <View style={{ flex: 1 }}>
+          <FlatList
+            data={messages}
+            renderItem={renderItem}
+            keyExtractor={item => item.id.toString()}
+            inverted
+            contentContainerStyle={styles.chat}
+            keyboardDismissMode="interactive"
+            keyboardShouldPersistTaps="handled"
+          />
+
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Type a message..."
+              value={inputText}
+              onChangeText={setInputText}
+              onSubmitEditing={sendMessage}
+              editable={!loading}
+            />
+            <TouchableOpacity
+              style={styles.sendButton}
+              onPress={sendMessage}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator size={"small"} color="#007AFF" />
+              ) : (
+                <Text style={styles.sendButtonText}>Send</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -192,8 +202,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
+  header: {
+    flexDirection: "row",
+    padding: 10,
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+  },
+  backButton: {
+    color: "black",
+    fontSize: hp(2),
+    fontWeight: "bold",
+  },
   chat: {
     padding: 10,
+    paddingBottom: 20,
   },
   messageContainer: {
     marginVertical: 4,
@@ -240,6 +262,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: "#ccc",
     backgroundColor: "#f9f9f9",
+    paddingBottom: Platform.OS == "ios" ? 25 : 10,
   },
   input: {
     flex: 1,

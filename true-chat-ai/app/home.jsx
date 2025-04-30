@@ -1,18 +1,30 @@
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { FlatList, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  Alert,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  Vibration,
+} from "react-native";
 import { Animated, View, Text, Image } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-
+import Ionicons from "@expo/vector-icons/Ionicons";
 import ChatFaceData from "../constant/ChatFaceData";
 import { useRouter } from "expo-router";
+import useAuthStore from "../store/useAuthStore";
+import { UsePreventBack } from "../hooks/usePreventBack";
+import { Colors } from "../constant/Colors";
 
 const HomeScreen = () => {
+  UsePreventBack();
   const router = useRouter();
+  const { logout } = useAuthStore();
+  const [loading, setLoading] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(1));
   const [chatData, setChatData] = useState([]);
   const [selectedChat, setSelectedChat] = useState({});
@@ -66,9 +78,58 @@ const HomeScreen = () => {
     });
   };
 
+  const handleLogout = () => {
+    Vibration.vibrate(200); // Vibrate for 100ms before showing the Alert
+    Alert.alert("Logout?", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Logout",
+        onPress: async () => {
+          try {
+            setLoading(true);
+            await logout();
+          } catch (error) {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            console.log(errorCode, errorMessage);
+
+            const formattedMessage = errorCode
+              .replace("auth/", "")
+              .replace(/-/g, " ");
+            // .replace(/\b\w/g, char => char.toUpperCase());
+            if (isIphone) {
+              Toast.show({
+                type: "error",
+                position: "top",
+                text1: "Login Failed",
+                text2: formattedMessage,
+                visibilityTime: 2000,
+                autoHide: true,
+                topOffset: 50,
+              });
+            } else {
+              ToastAndroid.show(formattedMessage, ToastAndroid.LONG);
+            }
+          } finally {
+            setLoading(false);
+          }
+        },
+      },
+    ]);
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white" }} edges={["top"]}>
       <StatusBar style="dark" />
+      <View style={{ paddingHorizontal: 20 }}>
+        <TouchableOpacity
+          onPress={handleLogout}
+          style={{ alignSelf: "flex-end" }}
+        >
+          <Ionicons name="exit" size={hp(3.6)} color={Colors.background} />
+        </TouchableOpacity>
+      </View>
+
       <View
         style={{ alignItems: "center", paddingTop: 90, paddingHorizontal: 20 }}
       >

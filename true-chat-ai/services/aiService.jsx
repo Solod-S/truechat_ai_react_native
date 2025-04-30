@@ -26,7 +26,6 @@ let specializationAdded = false;
 export async function getGoogleAIResponse(text, firsRender, specialization) {
   try {
     if (!chatSession.history || firsRender) {
-      console.log(`clear `);
       chatSession.history = [];
       specializationAdded = false; // сбросим флаг при новом запуске сессии
     }
