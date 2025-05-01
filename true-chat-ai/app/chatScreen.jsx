@@ -139,7 +139,7 @@ const ChatScreen = () => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : ""}
     >
       <SafeAreaView style={styles.container} edges={["top"]}>
         <StatusBar style="dark" />
